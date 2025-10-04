@@ -1,0 +1,13 @@
+# Ignore PyCharm files
+.idea/
+*.iml
+
+# Ignore Python junk
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Python Virtual Environment
+.venv/
