@@ -4,8 +4,8 @@ A powerful payroll automation system designed to simplify salary calculation, ta
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-GNU%20General%20Public%20License%20v3.0-green)
-![Stars](https://img.shields.io/github/stars/payroll-manager/payroll-manager?style=social)
-![Forks](https://img.shields.io/github/forks/payroll-manager/payroll-manager?style=social)
+![Stars](https://img.shields.io/github/stars/ankitkumar-13/payroll-manager?style=social)
+![Forks](https://img.shields.io/github/forks/ankitkumar-13/payroll-manager?style=social)
 
 ![Project Preview](/preview_example.png)
 *A placeholder for a project screenshot or preview image.*
@@ -168,4 +168,4 @@ This project is licensed under the **GNU General Public License v3.0**.
 
 You are free to use, modify, and distribute this software under the terms of the GPLv3.0. Please see the [LICENSE](LICENSE) file for the full text of the license.
 
-Copyright (c) 2023 ankitkumar-13. All rights reserved.
+Copyright (c) 2025 ankitkumar-13. All rights reserved.
