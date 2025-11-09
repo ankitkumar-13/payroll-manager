@@ -32,6 +32,7 @@ def list_payrolls(request):
         'name': user.first_name or user.username,
         'payrolls': payrolls,
         'is_hr_or_admin': True,
+        'active_nav': 'payroll',
     }
     
     return render(request, 'payroll/list_payrolls.html', context)
@@ -219,6 +220,7 @@ def process_payroll(request):
         'name': user.first_name or user.username,
         'form': form,
         'is_hr_or_admin': True,
+        'active_nav': 'payroll',
     }
     
     return render(request, 'payroll/process_payroll.html', context)
@@ -249,6 +251,7 @@ def payroll_detail(request, payroll_id):
         'payroll': payroll,
         'payslips': payslips,
         'is_hr_or_admin': True,
+        'active_nav': 'payroll',
     }
     
     return render(request, 'payroll/payroll_detail.html', context)

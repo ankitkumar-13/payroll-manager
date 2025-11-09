@@ -1,106 +1,53 @@
 {% extends 'layout.html' %}
 
 {% block page_title %}Employees - Payroll Manager{% endblock %}
-
-{% block dashboard_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block employees_nav_class %}text-white bg-indigo-600 rounded-lg hover:bg-indigo-700{% endblock %}
-{% block payroll_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block payslips_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block profile_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-
 {% block header_title %}Employees{% endblock %}
-
 {% block header_subtitle %}Manage all employees in the system{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Messages -->
-    {% if messages %}
-        <div class="space-y-2">
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- Header Actions -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h3 class="text-xl font-semibold text-white">All Employees</h3>
-            <p class="text-slate-400 mt-1">Total: {{ employees|length }} employee{{ employees|length|pluralize }}</p>
-        </div>
-        <a href="{% url 'add_employee' %}" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add Employee
-        </a>
-    </div>
-
-    <!-- Employees Table -->
-    <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
-        {% if employees %}
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-slate-700 bg-slate-800">
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Name</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Email</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Job Role</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Department</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Date Joined</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Base Salary</th>
-                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Bank</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for emp in employees %}
-                        <tr class="border-b border-slate-800 hover:bg-slate-800 transition">
-                            <td class="py-4 px-6 text-white font-medium">
-                                {{ emp.user.get_full_name|default:emp.user.username }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                {{ emp.user.email }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                {{ emp.job_role.title|default:"N/A" }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                {{ emp.job_role.department|default:"N/A" }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                {{ emp.date_of_joining|date:"M d, Y" }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                ₹{{ emp.salary_base|floatformat:2 }}
-                            </td>
-                            <td class="py-4 px-6 text-slate-300">
-                                {% if emp.bank_details %}
-                                    {{ emp.bank_details.bank_name }}
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="text-center py-12">
-                <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                <p class="text-slate-400 text-lg mb-2">No employees found</p>
-                <p class="text-slate-500 text-sm mb-6">Get started by adding your first employee</p>
-                <a href="{% url 'add_employee' %}" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
-                    Add Employee
-                </a>
-            </div>
-        {% endif %}
-    </div>
+<div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-semibold text-white">All Employees</h3>
+    <a href="{% url 'add_employee' %}" class="btn bg-indigo-600 text-white hover:bg-indigo-700">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add Employee
+    </a>
 </div>
-{% endblock %}
 
+{% if employees %}
+    <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-800">
+                    <tr>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Name</th>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Job Role</th>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Department</th>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Date Joined</th>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Base Salary</th>
+                        <th class="text-left py-4 px-6 text-slate-300 font-medium">Bank</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr class="border-b border-slate-800 hover:bg-slate-800 transition">
+                        <td class="py-4 px-6 text-white font-medium">{{ emp.user.get_full_name|default:emp.user.username }}</td>
+                        <td class="py-4 px-6 text-slate-300">{{ emp.job_role.title|default:"N/A" }}</td>
+                        <td class="py-4 px-6 text-slate-300">{{ emp.job_role.department|default:"N/A" }}</td>
+                        <td class="py-4 px-6 text-slate-300">{{ emp.date_of_joining|date:"M d, Y" }}</td>
+                        <td class="py-4 px-6 text-slate-300">₹{{ emp.salary_base|floatformat:2 }}</td>
+                        <td class="py-4 px-6 text-slate-300">{{ emp.bank_details.bank_name|default:"N/A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-12 text-center">
+        <p class="text-slate-400 mb-4">No employees found.</p>
+        <a href="{% url 'add_employee' %}" class="btn bg-indigo-600 text-white hover:bg-indigo-700">Add First Employee</a>
+    </div>
+{% endif %}
+{% endblock %}
