@@ -7,17 +7,6 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
-    <!-- Messages -->
-    {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
     <!-- Form Card -->
     <div class="bg-slate-900 border border-slate-700 rounded-xl p-8">
         <h3 class="text-xl font-semibold text-white mb-6">Payroll Information</h3>

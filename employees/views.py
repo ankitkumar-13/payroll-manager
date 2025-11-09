@@ -185,7 +185,7 @@ def update_profile(request):
                     bank_details.ifsc_code = form.cleaned_data['ifsc_code']
                     bank_details.save()
                 
-                messages.success(request, 'Profile updated successfully!')
+                messages.success(request, f'Your profile has been updated successfully! Changes to personal information and bank details have been saved.')
                 return redirect('update_profile')
             except Exception as e:
                 messages.error(request, f'Error updating profile: {str(e)}')

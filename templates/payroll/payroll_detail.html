@@ -7,17 +7,6 @@
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Messages -->
-    {% if messages %}
-        <div class="space-y-2">
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
     <!-- Payroll Summary -->
     <div class="bg-slate-900 border border-slate-700 rounded-xl p-6">
         <div class="flex items-center justify-between mb-6">
