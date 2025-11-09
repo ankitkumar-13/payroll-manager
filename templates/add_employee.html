@@ -1,203 +1,115 @@
 {% extends 'layout.html' %}
 
 {% block page_title %}Add Employee - Payroll Manager{% endblock %}
-
-{% block dashboard_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block employees_nav_class %}text-white bg-indigo-600 rounded-lg hover:bg-indigo-700{% endblock %}
-{% block payroll_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block payslips_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-{% block profile_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
-
 {% block header_title %}Add Employee{% endblock %}
-
 {% block header_subtitle %}Register a new employee in the system{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <!-- Messages -->
-    {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- Form Card -->
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <h3 class="text-xl font-semibold text-white mb-6">Employee Information</h3>
-        
+<div class="max-w-3xl">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6">
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
-            <!-- User Information Section -->
-            <div class="space-y-4">
-                <h4 class="text-lg font-medium text-white border-b border-slate-700 pb-2">User Account</h4>
+            <!-- Personal Information Section -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Personal Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Username *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Username</label>
                         {{ form.username }}
                         {% if form.username.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.username.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Email *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Email</label>
                         {{ form.email }}
                         {% if form.email.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.email.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">First Name *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">First Name</label>
                         {{ form.first_name }}
                         {% if form.first_name.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.first_name.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.first_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Last Name</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Last Name</label>
                         {{ form.last_name }}
                         {% if form.last_name.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.last_name.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.last_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Phone Number</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Phone Number</label>
                         {{ form.phone_number }}
                         {% if form.phone_number.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.phone_number.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.phone_number.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Password *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Password</label>
                         {{ form.password }}
                         {% if form.password.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.password.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Employee Information Section -->
-            <div class="space-y-4">
-                <h4 class="text-lg font-medium text-white border-b border-slate-700 pb-2">Employee Details</h4>
+            <!-- Employment Information Section -->
+            <div class="border-t border-slate-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Employment Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Job Role *</span>
-                        </label>
-                        <select name="{{ form.job_role.name }}" class="select select-bordered w-full bg-slate-800 text-white border-slate-600 focus:border-indigo-500 focus:outline-none" required>
-                            <option value="" disabled selected>Select a job role</option>
-                            {% for choice in form.job_role.field.queryset %}
-                                <option value="{{ choice.id }}" {% if form.job_role.value == choice.id %}selected{% endif %} class="bg-slate-800 text-white">{{ choice.title }}{% if choice.department %} - {{ choice.department }}{% endif %}</option>
-                            {% endfor %}
-                        </select>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Job Role</label>
+                        {{ form.job_role }}
                         {% if form.job_role.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.job_role.errors.0 }}</span>
-                            </label>
-                        {% elif not form.job_role.field.queryset.exists %}
-                            <label class="label">
-                                <span class="label-text-alt text-yellow-400">No job roles available. Please create job roles in the admin panel first.</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.job_role.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Date of Joining *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Date of Joining</label>
                         {{ form.date_of_joining }}
                         {% if form.date_of_joining.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.date_of_joining.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.date_of_joining.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control md:col-span-2">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Base Salary *</span>
-                        </label>
+                    <div class="md:col-span-2">
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Base Salary</label>
                         {{ form.salary_base }}
                         {% if form.salary_base.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.salary_base.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.salary_base.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Bank Details Section -->
-            <div class="space-y-4">
-                <h4 class="text-lg font-medium text-white border-b border-slate-700 pb-2">Bank Information</h4>
+            <!-- Bank Information Section -->
+            <div class="border-t border-slate-700 pt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Bank Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Bank Name *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Bank Name</label>
                         {{ form.bank_name }}
                         {% if form.bank_name.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.bank_name.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.bank_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">Account Number *</span>
-                        </label>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-medium mb-2">Account Number</label>
                         {{ form.account_number }}
                         {% if form.account_number.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.account_number.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.account_number.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text text-slate-300">IFSC Code</span>
-                        </label>
+                    <div class="md:col-span-2">
+                        <label class="block text-slate-300 text-sm font-medium mb-2">IFSC Code</label>
                         {{ form.ifsc_code }}
                         {% if form.ifsc_code.errors %}
-                            <label class="label">
-                                <span class="label-text-alt text-red-400">{{ form.ifsc_code.errors.0 }}</span>
-                            </label>
+                            <p class="text-red-400 text-xs mt-1">{{ form.ifsc_code.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -208,7 +120,7 @@
                 <a href="{% url 'list_employees' %}" class="btn btn-ghost text-slate-300 hover:text-white">
                     Cancel
                 </a>
-                <button type="submit" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
+                <button type="submit" class="btn bg-indigo-600 text-white hover:bg-indigo-700">
                     Add Employee
                 </button>
             </div>
@@ -216,4 +128,3 @@
     </div>
 </div>
 {% endblock %}
-

@@ -25,6 +25,7 @@ def list_employees(request):
         'name': user.first_name or user.username,
         'employees': employees,
         'is_hr_or_admin': True,
+        'active_nav': 'employees',
     }
     
     return render(request, 'list_employees.html', context)
@@ -63,6 +64,7 @@ def add_employee(request):
         'name': user.first_name or user.username,
         'form': form,
         'is_hr_or_admin': True,
+        'active_nav': 'employees',
     }
     
     return render(request, 'add_employee.html', context)
@@ -98,6 +100,7 @@ def view_my_payslips(request):
         'employee': employee,
         'payslips': payslips,
         'is_hr_or_admin': False,
+        'active_nav': 'payslips',
     }
     
     return render(request, 'employees/my_payslips.html', context)
@@ -141,6 +144,7 @@ def view_payslip_detail(request, payslip_id):
         'allowances': allowances,
         'deductions': deductions,
         'is_hr_or_admin': False,
+        'active_nav': 'payslips',
     }
     
     return render(request, 'employees/payslip_detail.html', context)
@@ -194,6 +198,7 @@ def update_profile(request):
         'employee': employee,
         'form': form,
         'is_hr_or_admin': False,
+        'active_nav': 'profile',
     }
     
     return render(request, 'employees/update_profile.html', context)

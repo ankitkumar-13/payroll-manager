@@ -37,6 +37,7 @@ def dashboard(request):
     context = {
         'user': user,
         'name': user.first_name or user.username,
+        'active_nav': 'dashboard',
     }
     
     # Role-based data
