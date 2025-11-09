@@ -1,0 +1,93 @@
+{% extends 'layout.html' %}
+
+{% block page_title %}Process Payroll - Payroll Manager{% endblock %}
+
+{% block dashboard_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
+{% block payroll_nav_class %}text-white bg-indigo-600 rounded-lg hover:bg-indigo-700{% endblock %}
+
+{% block header_title %}Process Payroll{% endblock %}
+
+{% block header_subtitle %}Calculate and generate payroll for a specific month{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8">
+        <h3 class="text-xl font-semibold text-white mb-6">Payroll Information</h3>
+        
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300">Month *</span>
+                    </label>
+                    {{ form.month }}
+                    {% if form.month.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-red-400">{{ form.month.errors.0 }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300">Year *</span>
+                    </label>
+                    {{ form.year }}
+                    {% if form.year.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-red-400">{{ form.year.errors.0 }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text text-slate-300">Notes (Optional)</span>
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-red-400">{{ form.notes.errors.0 }}</span>
+                    </label>
+                {% endif %}
+            </div>
+
+            <!-- Info Box -->
+            <div class="alert alert-info bg-indigo-900/20 border-indigo-700">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-slate-300">
+                    This will process payroll for all active employees based on their configured allowances and deductions.
+                </span>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-slate-700">
+                <a href="{% url 'list_payrolls' %}" class="btn btn-ghost text-slate-300 hover:text-white">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
+                    Process Payroll
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

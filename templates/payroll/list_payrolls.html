@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+
+{% block page_title %}Payroll - Payroll Manager{% endblock %}
+
+{% block dashboard_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
+{% block payroll_nav_class %}text-white bg-indigo-600 rounded-lg hover:bg-indigo-700{% endblock %}
+
+{% block header_title %}Payroll{% endblock %}
+
+{% block header_subtitle %}Manage and process monthly payroll{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Header Actions -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-xl font-semibold text-white">All Payrolls</h3>
+            <p class="text-slate-400 mt-1">Total: {{ payrolls|length }} payroll{{ payrolls|length|pluralize }}</p>
+        </div>
+        <a href="{% url 'process_payroll' %}" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Process Payroll
+        </a>
+    </div>
+
+    <!-- Payrolls Table -->
+    <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+        {% if payrolls %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700 bg-slate-800">
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Period</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Status</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Employees</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Gross Salary</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Deductions</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Net Salary</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Processed By</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Date</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payrolls %}
+                        <tr class="border-b border-slate-800 hover:bg-slate-800 transition">
+                            <td class="py-4 px-6 text-white font-medium">
+                                {{ payroll.month }}/{{ payroll.year }}
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="badge {% if payroll.status == 'PAID' %}badge-success{% elif payroll.status == 'APPROVED' %}badge-info{% elif payroll.status == 'PROCESSED' %}badge-warning{% else %}badge-ghost{% endif %}">
+                                    {{ payroll.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                {{ payroll.employee_count }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                ₹{{ payroll.total_gross_salary|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                ₹{{ payroll.total_deductions|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-white font-medium">
+                                ₹{{ payroll.total_net_salary|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                {{ payroll.processed_by.get_full_name|default:payroll.processed_by.username|default:"N/A" }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                {{ payroll.processed_date|date:"M d, Y" }}
+                            </td>
+                            <td class="py-4 px-6">
+                                <a href="{% url 'payroll_detail' payroll.id %}" class="text-indigo-400 hover:text-indigo-300 text-sm">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-slate-400 text-lg mb-2">No payrolls found</p>
+                <p class="text-slate-500 text-sm mb-6">Get started by processing your first payroll</p>
+                <a href="{% url 'process_payroll' %}" class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white">
+                    Process Payroll
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

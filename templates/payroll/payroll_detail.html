@@ -1,0 +1,122 @@
+{% extends 'layout.html' %}
+
+{% block page_title %}Payroll Details - Payroll Manager{% endblock %}
+
+{% block dashboard_nav_class %}text-slate-300 rounded-lg hover:bg-slate-800{% endblock %}
+{% block payroll_nav_class %}text-white bg-indigo-600 rounded-lg hover:bg-indigo-700{% endblock %}
+
+{% block header_title %}Payroll Details{% endblock %}
+
+{% block header_subtitle %}Payroll for {{ payroll.month }}/{{ payroll.year }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Payroll Summary -->
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-white">Payroll Summary</h3>
+            <span class="badge {% if payroll.status == 'PAID' %}badge-success{% elif payroll.status == 'APPROVED' %}badge-info{% elif payroll.status == 'PROCESSED' %}badge-warning{% else %}badge-ghost{% endif %}">
+                {{ payroll.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+                <p class="text-slate-400 text-sm mb-1">Total Employees</p>
+                <p class="text-2xl font-bold text-white">{{ payroll.employee_count }}</p>
+            </div>
+            <div>
+                <p class="text-slate-400 text-sm mb-1">Gross Salary</p>
+                <p class="text-2xl font-bold text-white">₹{{ payroll.total_gross_salary|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-slate-400 text-sm mb-1">Total Deductions</p>
+                <p class="text-2xl font-bold text-white">₹{{ payroll.total_deductions|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-slate-400 text-sm mb-1">Net Salary</p>
+                <p class="text-2xl font-bold text-indigo-400">₹{{ payroll.total_net_salary|floatformat:2 }}</p>
+            </div>
+        </div>
+        
+        {% if payroll.notes %}
+        <div class="mt-6 pt-6 border-t border-slate-700">
+            <p class="text-slate-400 text-sm mb-1">Notes</p>
+            <p class="text-slate-300">{{ payroll.notes }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="mt-6 pt-6 border-t border-slate-700 text-sm text-slate-400">
+            <p>Processed by: {{ payroll.processed_by.get_full_name|default:payroll.processed_by.username }}</p>
+            <p>Processed on: {{ payroll.processed_date|date:"F d, Y g:i A" }}</p>
+        </div>
+    </div>
+
+    <!-- Payslips List -->
+    <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+        <div class="p-6 border-b border-slate-700">
+            <h3 class="text-lg font-semibold text-white">Employee Payslips ({{ payslips|length }})</h3>
+        </div>
+        
+        {% if payslips %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700 bg-slate-800">
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Employee</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Base Salary</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Gross Salary</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Deductions</th>
+                            <th class="text-left py-4 px-6 text-slate-300 font-medium text-sm">Net Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payslip in payslips %}
+                        <tr class="border-b border-slate-800 hover:bg-slate-800 transition">
+                            <td class="py-4 px-6 text-white font-medium">
+                                {{ payslip.employee.user.get_full_name|default:payslip.employee.user.username }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                ₹{{ payslip.base_salary|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                ₹{{ payslip.gross_salary|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-slate-300">
+                                ₹{{ payslip.total_deductions|floatformat:2 }}
+                            </td>
+                            <td class="py-4 px-6 text-white font-medium">
+                                ₹{{ payslip.net_salary|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <p class="text-slate-400">No payslips found for this payroll.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div class="flex justify-end">
+        <a href="{% url 'list_payrolls' %}" class="btn btn-ghost text-slate-300 hover:text-white">
+            ← Back to Payrolls
+        </a>
+    </div>
+</div>
+{% endblock %}
+
