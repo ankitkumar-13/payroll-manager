@@ -17,4 +17,5 @@ class CustomUserAdmin(UserAdmin):
         (None, {"fields" : ("role", "phone_number")}),
     )
 
+
 admin.site.register(CustomUser, CustomUserAdmin)

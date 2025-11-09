@@ -17,3 +17,4 @@ __pycache__/
 
 # Migrations the may be made during testing and creation of models.
 **/migrations/
+Project Template.md
