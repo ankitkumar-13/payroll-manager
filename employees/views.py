@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from employees.models import Employee, JobRole
+from payroll.models import Payslip, EmployeeAllowanceConfig, EmployeeDeductionConfig
 from employees.forms import AddEmployeeForm, UpdateProfileForm
-from employees.models import Employee, JobRole, BankDetails
-from payroll.models import Payslip
+from datetime import date
 
 
 @login_required
@@ -148,6 +149,124 @@ def view_payslip_detail(request, payslip_id):
     }
     
     return render(request, 'employees/payslip_detail.html', context)
+
+
+@login_required
+def generate_payslip(request, payslip_id):
+    """Generate detailed payslip with calculations - HTML view"""
+    user = request.user
+    
+    # Check if user is an employee
+    if user.is_hr() or user.is_admin():
+        messages.error(request, 'This page is only for employees.')
+        return redirect('dashboard')
+    
+    try:
+        employee = Employee.objects.select_related('user', 'job_role', 'bank_details').get(user=user)
+    except Employee.DoesNotExist:
+        messages.error(request, 'Employee profile not found.')
+        return redirect('dashboard')
+    
+    # Get payslip and verify it belongs to this employee
+    payslip = get_object_or_404(
+        Payslip.objects.select_related('payroll', 'employee__user', 'employee__job_role', 'employee__bank_details').prefetch_related(
+            'allowances__allowance_type',
+            'deductions__deduction_type'
+        ),
+        id=payslip_id,
+        employee=employee
+    )
+    
+    # Get allowances and deductions
+    allowances = payslip.allowances.all().select_related('allowance_type')
+    deductions = payslip.deductions.all().select_related('deduction_type')
+    
+    # Get employee allowance/deduction configs to show calculation details
+    payroll_date = date(payslip.payroll.year, payslip.payroll.month, 1)
+    
+    # Get allowance configs with calculation details
+    allowance_configs = EmployeeAllowanceConfig.objects.filter(
+        employee=employee,
+        is_active=True
+    ).select_related('allowance_type')
+    
+    allowance_details = []
+    for allowance in allowances:
+        config = allowance_configs.filter(allowance_type=allowance.allowance_type).first()
+        if config:
+            if config.is_percentage_type():
+                calculation = f"{config.percentage}% of Base Salary (₹{payslip.base_salary:,.2f})"
+            else:
+                calculation = f"Fixed Amount (₹{config.amount:,.2f})"
+            allowance_details.append({
+                'name': allowance.allowance_type.name,
+                'amount': allowance.amount,
+                'calculation': calculation,
+                'percentage': config.percentage if config.is_percentage_type() else None,
+                'is_taxable': allowance.allowance_type.is_taxable,
+            })
+        else:
+            allowance_details.append({
+                'name': allowance.allowance_type.name,
+                'amount': allowance.amount,
+                'calculation': 'N/A',
+                'percentage': None,
+                'is_taxable': allowance.allowance_type.is_taxable,
+            })
+    
+    # Get deduction configs with calculation details
+    deduction_configs = EmployeeDeductionConfig.objects.filter(
+        employee=employee,
+        is_active=True
+    ).select_related('deduction_type')
+    
+    deduction_details = []
+    for deduction in deductions:
+        config = deduction_configs.filter(deduction_type=deduction.deduction_type).first()
+        if config:
+            if config.is_percentage_type():
+                calculation = f"{config.percentage}% of Base Salary (₹{payslip.base_salary:,.2f})"
+            else:
+                calculation = f"Fixed Amount (₹{config.amount:,.2f})"
+            deduction_details.append({
+                'name': deduction.deduction_type.name,
+                'amount': deduction.amount,
+                'calculation': calculation,
+                'percentage': config.percentage if config.is_percentage_type() else None,
+                'is_statutory': deduction.deduction_type.is_statutory,
+            })
+        else:
+            deduction_details.append({
+                'name': deduction.deduction_type.name,
+                'amount': deduction.amount,
+                'calculation': 'N/A',
+                'percentage': None,
+                'is_statutory': deduction.deduction_type.is_statutory,
+            })
+    
+    # Month name mapping
+    month_names = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December']
+    
+    context = {
+        'payslip': payslip,
+        'employee': employee,
+        'allowances': allowances,
+        'deductions': deductions,
+        'allowance_details': allowance_details,
+        'deduction_details': deduction_details,
+        'payroll_date': payroll_date,
+        'month_name': month_names[payslip.payroll.month] if payslip.payroll.month <= 12 else 'Unknown',
+    }
+    
+    # HTML view only
+    context.update({
+        'user': user,
+        'name': user.first_name or user.username,
+        'is_hr_or_admin': False,
+        'active_nav': 'payslips',
+    })
+    return render(request, 'employees/payslip_generated.html', context)
 
 
 @login_required

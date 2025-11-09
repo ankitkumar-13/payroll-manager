@@ -1,0 +1,532 @@
+{% extends 'layout.html' %}
+
+{% block page_title %}Generated Payslip - Payroll Manager{% endblock %}
+{% block header_title %}Generated Payslip{% endblock %}
+{% block header_subtitle %}{{ payslip.payroll.month }}/{{ payslip.payroll.year }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+    <!-- Payslip Header -->
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8">
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">PAYSLIP</h1>
+                <p class="text-slate-400">Pay Period: {{ month_name }} {{ payslip.payroll.year }}</p>
+            </div>
+            <div class="text-right mt-1">
+                <p class="text-slate-400 text-sm mb-2">Status</p>
+                <span class="px-4 py-2 rounded-full text-sm font-medium inline-block
+                    {% if payslip.payroll.status == 'PAID' %}bg-green-600/20 text-green-400
+                    {% elif payslip.payroll.status == 'APPROVED' %}bg-blue-600/20 text-blue-400
+                    {% else %}bg-yellow-600/20 text-yellow-400{% endif %}">
+                    {{ payslip.payroll.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Employee Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pb-6 border-b border-slate-700">
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-3">Employee Information</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Name:</span>
+                        <span class="text-white font-medium">{{ employee.user.get_full_name|default:employee.user.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Employee ID:</span>
+                        <span class="text-white font-medium">{{ employee.user.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Job Role:</span>
+                        <span class="text-white font-medium">{{ employee.job_role.title|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Department:</span>
+                        <span class="text-white font-medium">{{ employee.job_role.department|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Date of Joining:</span>
+                        <span class="text-white font-medium">{{ employee.date_of_joining|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-3">Payment Information</h3>
+                <div class="space-y-2 text-sm">
+                    {% if employee.bank_details %}
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Bank Name:</span>
+                        <span class="text-white font-medium">{{ employee.bank_details.bank_name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Account Number:</span>
+                        <span class="text-white font-medium">
+                            {% with account=employee.bank_details.account_number %}
+                                {{ account|slice:"0:4" }}****
+                            {% endwith %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">IFSC Code:</span>
+                        <span class="text-white font-medium">{{ employee.bank_details.ifsc_code }}</span>
+                    </div>
+                    {% endif %}
+                    {% if payslip.payment_date %}
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Payment Date:</span>
+                        <span class="text-white font-medium">{{ payslip.payment_date|date:"M d, Y" }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Payment Method:</span>
+                        <span class="text-white font-medium">{{ payslip.get_payment_method_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Salary Breakdown -->
+        <div class="space-y-6">
+            <!-- Earnings Section -->
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold text-white mb-4">Earnings Breakdown</h3>
+                <div class="space-y-4">
+                    <!-- Base Salary -->
+                    <div class="border-b border-slate-700 pb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-slate-300 font-medium">Base Salary</span>
+                            <span class="text-white font-bold text-lg">₹{{ payslip.base_salary|floatformat:2 }}</span>
+                        </div>
+                        <p class="text-slate-500 text-xs">Fixed monthly salary</p>
+                    </div>
+
+                    <!-- Allowances -->
+                    {% for detail in allowance_details %}
+                    <div class="border-b border-slate-700 pb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-300 font-medium">{{ detail.name }}</span>
+                                {% if detail.is_taxable %}
+                                <span class="px-2 py-0.5 bg-yellow-600/20 text-yellow-400 text-xs rounded">Taxable</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 bg-green-600/20 text-green-400 text-xs rounded">Non-Taxable</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-white font-bold">₹{{ detail.amount|floatformat:2 }}</span>
+                        </div>
+                        <p class="text-slate-500 text-xs">Calculation: {{ detail.calculation }}</p>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Gross Salary Total -->
+                    <div class="pt-3 border-t-2 border-indigo-500">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white font-bold text-lg">Gross Salary</span>
+                            <span class="text-indigo-400 font-bold text-xl">₹{{ payslip.gross_salary|floatformat:2 }}</span>
+                        </div>
+                        <p class="text-slate-500 text-xs mt-1">Base Salary + All Allowances</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deductions Section -->
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold text-white mb-4">Deductions Breakdown</h3>
+                <div class="space-y-4">
+                    {% for detail in deduction_details %}
+                    <div class="border-b border-slate-700 pb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-300 font-medium">{{ detail.name }}</span>
+                                {% if detail.is_statutory %}
+                                <span class="px-2 py-0.5 bg-blue-600/20 text-blue-400 text-xs rounded">Statutory</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-red-400 font-bold">-₹{{ detail.amount|floatformat:2 }}</span>
+                        </div>
+                        <p class="text-slate-500 text-xs">Calculation: {{ detail.calculation }}</p>
+                    </div>
+                    {% endfor %}
+
+                    {% if not deduction_details %}
+                    <div class="text-slate-500 text-sm py-4">No deductions applied</div>
+                    {% endif %}
+
+                    <!-- Total Deductions -->
+                    <div class="pt-3 border-t-2 border-red-500">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white font-bold text-lg">Total Deductions</span>
+                            <span class="text-red-400 font-bold text-xl">₹{{ payslip.total_deductions|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Salary -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-indigo-200 text-sm mb-1">Net Salary (Take Home)</p>
+                        <p class="text-white font-bold text-4xl">₹{{ payslip.net_salary|floatformat:2 }}</p>
+                        <p class="text-indigo-200 text-xs mt-2">Gross Salary - Total Deductions</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <p class="text-indigo-200 text-xs mb-1">Calculation Summary</p>
+                            <p class="text-white text-sm">₹{{ payslip.gross_salary|floatformat:2 }} - ₹{{ payslip.total_deductions|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-center gap-4">
+        <a href="{% url 'view_payslip_detail' payslip.id %}" class="btn btn-ghost text-slate-300 hover:text-white">
+            ← Back to Payslip
+        </a>
+        <button onclick="window.print()" class="btn bg-indigo-600 text-white hover:bg-indigo-700">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Print
+        </button>
+    </div>
+</div>
+
+<style>
+@media print {
+    /* Hide sidebar - target the fixed sidebar div */
+    div.fixed.inset-y-0.left-0.w-64,
+    div[class*="fixed"][class*="inset-y-0"][class*="left-0"],
+    .fixed.inset-y-0.left-0 {
+        display: none !important;
+    }
+    
+    /* Hide navigation, buttons, and header */
+    .btn, nav, header { 
+        display: none !important; 
+    }
+    
+    /* Remove left margin for main content area */
+    .ml-64 { 
+        margin-left: 0 !important; 
+        display: block !important;
+    }
+    
+    /* Reset body and container */
+    body { 
+        background: white !important; 
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Force background colors to print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Color adjustments for print */
+    /* Main container - light grey shade (more visible) */
+    .bg-slate-900,
+    div.bg-slate-900,
+    [class*="bg-slate-900"] {
+        background-color: #e5e5e5 !important;
+        background: #e5e5e5 !important;
+        border: 1px solid #b0b0b0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Breakdown boxes - medium grey shade (more visible) */
+    .bg-slate-800,
+    div.bg-slate-800,
+    [class*="bg-slate-800"] {
+        background-color: #d0d0d0 !important;
+        background: #d0d0d0 !important;
+        border: 1px solid #a0a0a0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Rounded boxes */
+    .rounded-lg,
+    .rounded-xl {
+        background-color: #e5e5e5 !important;
+        background: #e5e5e5 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Net salary box - keep gradient but ensure text is visible */
+    .bg-gradient-to-r {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+        background-color: #6366f1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Net salary box text - make all text visible */
+    .bg-gradient-to-r .text-white,
+    .bg-gradient-to-r p.text-white,
+    .bg-gradient-to-r span.text-white {
+        color: #ffffff !important;
+    }
+    
+    /* Calculation summary box inside net salary */
+    .bg-white\/10 {
+        background-color: rgba(255, 255, 255, 0.3) !important;
+        background: rgba(255, 255, 255, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .bg-white\/10 .text-indigo-200,
+    .bg-white\/10 .text-white {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Text colors - darker for better contrast on grey backgrounds */
+    .text-slate-300,
+    span.text-slate-300 {
+        color: #1a1a1a !important;
+    }
+    .text-slate-400,
+    span.text-slate-400,
+    p.text-slate-400 { 
+        color: #333333 !important; 
+    }
+    .text-slate-500,
+    span.text-slate-500,
+    p.text-slate-500 {
+        color: #444444 !important;
+    }
+    
+    /* General white text - make dark */
+    .text-white,
+    span.text-white,
+    p.text-white,
+    div.text-white,
+    h1.text-white,
+    h2.text-white,
+    h3.text-white { 
+        color: #000000 !important; 
+    }
+    
+    /* General indigo text - make dark */
+    .text-indigo-200,
+    .text-indigo-300 {
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* OVERRIDE: Text inside gradient box - keep white (more specific, comes last) */
+    .bg-gradient-to-r .text-indigo-200,
+    .bg-gradient-to-r .text-indigo-300,
+    .bg-gradient-to-r p.text-indigo-200,
+    .bg-gradient-to-r p.text-indigo-300,
+    .bg-gradient-to-r span.text-indigo-200,
+    .bg-gradient-to-r span.text-indigo-300,
+    .bg-gradient-to-r .text-white,
+    .bg-gradient-to-r p.text-white,
+    .bg-gradient-to-r span.text-white,
+    .bg-gradient-to-r div.text-white,
+    .bg-gradient-to-r h1.text-white,
+    .bg-gradient-to-r h2.text-white,
+    .bg-gradient-to-r h3.text-white {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    .text-indigo-400 {
+        color: #4f46e5 !important;
+        font-weight: bold !important;
+    }
+    .text-red-400 {
+        color: #dc2626 !important;
+        font-weight: bold !important;
+    }
+    /* Badge text colors - make them dark and bold */
+    .text-green-400,
+    span.text-green-400 {
+        color: #155724 !important;
+        font-weight: bold !important;
+    }
+    .text-yellow-400,
+    span.text-yellow-400 {
+        color: #856404 !important;
+        font-weight: bold !important;
+    }
+    .text-blue-400,
+    span.text-blue-400 {
+        color: #004085 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Headings - black for visibility */
+    h1, h2, h3, h4 {
+        color: #000000 !important;
+    }
+    
+    /* Badges and tags - make them clearly visible with borders */
+    span[class*="bg-yellow"],
+    span[class*="bg-green"],
+    span[class*="bg-blue"],
+    .bg-yellow-600\/20,
+    .bg-green-600\/20,
+    .bg-blue-600\/20,
+    [class*="bg-yellow-600"],
+    [class*="bg-green-600"],
+    [class*="bg-blue-600"] {
+        background-color: #f0f0f0 !important;
+        background: #f0f0f0 !important;
+        border: 2px solid #333333 !important;
+        padding: 4px 10px !important;
+        border-radius: 4px !important;
+        font-weight: bold !important;
+        font-size: 11px !important;
+        display: inline-block !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Status badges - specific colors */
+    span[class*="bg-green"],
+    .bg-green-600\/20,
+    [class*="bg-green-600"] {
+        background-color: #d4edda !important;
+        border: 2px solid #28a745 !important;
+        color: #155724 !important;
+    }
+    span[class*="bg-blue"],
+    .bg-blue-600\/20,
+    [class*="bg-blue-600"] {
+        background-color: #cce5ff !important;
+        border: 2px solid #0066cc !important;
+        color: #004085 !important;
+    }
+    span[class*="bg-yellow"],
+    .bg-yellow-600\/20,
+    [class*="bg-yellow-600"] {
+        background-color: #fff3cd !important;
+        border: 2px solid #ffc107 !important;
+        color: #856404 !important;
+    }
+    
+    /* Status badge in header */
+    span[class*="rounded-full"] {
+        background-color: #e0e0e0 !important;
+        border: 2px solid #666666 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        padding: 6px 16px !important;
+    }
+    
+    /* Ensure borders are visible */
+    .border-slate-700,
+    .border-slate-800 {
+        border-color: #888888 !important;
+    }
+    
+    /* Full width for print */
+    .min-h-screen { 
+        min-height: auto !important; 
+    }
+    
+    /* Ensure content takes full width */
+    .max-w-5xl {
+        max-width: 100% !important;
+        margin: 0 auto !important;
+    }
+    
+    /* Page break controls - allow natural breaks within sections */
+    /* Main container - allow breaks */
+    .bg-slate-900 {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+    }
+    
+    /* Breakdown boxes - allow breaks within, but keep items together */
+    .bg-slate-800.rounded-lg {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+    }
+    
+    /* Keep net salary box together (important section) */
+    .bg-gradient-to-r {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Keep employee info grid together */
+    .grid {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Keep individual breakdown items together (each allowance/deduction) */
+    .border-b.border-slate-700 {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Allow breaks between items in breakdown lists */
+    .space-y-4 {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+    }
+    
+    /* Add top margin/padding when content continues on new page */
+    /* This creates space at the top of a new page when content breaks */
+    .border-b.border-slate-700 {
+        margin-top: 15px !important;
+    }
+    
+    /* Add padding to breakdown boxes - will show when box starts on new page */
+    .bg-slate-800.rounded-lg {
+        margin-top: 20px !important;
+    }
+    
+    /* Section titles - add space when they appear at top of page */
+    .text-xl.font-semibold {
+        page-break-after: avoid !important;
+        margin-top: 15px !important;
+    }
+    
+    /* Major sections - add space when they start on new page */
+    .space-y-6 > * {
+        margin-top: 20px !important;
+    }
+    
+    /* Remove extra margin from first elements on first page */
+    .space-y-6 > *:first-child {
+        margin-top: 0 !important;
+    }
+    
+    .bg-slate-800.rounded-lg:first-of-type {
+        margin-top: 0 !important;
+    }
+    
+    /* Add extra space for items that break to new page */
+    .space-y-4 > * {
+        margin-top: 10px !important;
+    }
+    
+    .space-y-4 > *:first-child {
+        margin-top: 0 !important;
+    }
+}
+</style>
+{% endblock %}
+
