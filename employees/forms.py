@@ -105,3 +105,55 @@ class AddEmployeeForm(forms.Form):
         
         return employee
 
+
+class UpdateProfileForm(forms.Form):
+    """Form for employees to update their profile"""
+    first_name = forms.CharField(max_length=25, required=True, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'First Name'
+    }))
+    last_name = forms.CharField(max_length=25, required=False, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'Last Name'
+    }))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'Email'
+    }))
+    phone_number = forms.CharField(max_length=11, required=False, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'Phone Number'
+    }))
+    
+    # Bank details
+    bank_name = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'Bank Name'
+    }))
+    account_number = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'Account Number'
+    }))
+    ifsc_code = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={
+        'class': 'input input-bordered w-full bg-slate-800 text-white',
+        'placeholder': 'IFSC Code'
+    }))
+    
+    def __init__(self, *args, **kwargs):
+        employee = kwargs.pop('employee', None)
+        super().__init__(*args, **kwargs)
+        
+        if employee:
+            # Pre-fill form with existing data
+            self.fields['first_name'].initial = employee.user.first_name
+            self.fields['last_name'].initial = employee.user.last_name
+            self.fields['email'].initial = employee.user.email
+            self.fields['phone_number'].initial = employee.user.phone_number
+            self.fields['bank_name'].initial = employee.bank_details.bank_name
+            self.fields['account_number'].initial = employee.bank_details.account_number
+            self.fields['ifsc_code'].initial = employee.bank_details.ifsc_code
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Allow the employee's current email
+        return email
