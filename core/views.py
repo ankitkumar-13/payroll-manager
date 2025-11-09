@@ -61,13 +61,33 @@ def dashboard(request):
         # Employee Dashboard
         try:
             employee = Employee.objects.select_related('job_role', 'bank_details').get(user=user)
+            from payroll.models import Payslip
+            from django.db.models import Sum
+            from datetime import datetime
+            
+            # Get payslip statistics
+            all_payslips = Payslip.objects.filter(employee=employee)
+            current_month = datetime.now().month
+            current_year = datetime.now().year
+            this_month_payslips = all_payslips.filter(
+                payroll__month=current_month,
+                payroll__year=current_year
+            )
+            total_earnings = all_payslips.aggregate(Sum('net_salary'))['net_salary__sum'] or 0
+            
             context.update({
                 'employee': employee,
+                'payslips_count': this_month_payslips.count(),
+                'total_earnings': total_earnings,
+                'total_payslips': all_payslips.count(),
                 'is_hr_or_admin': False,
             })
         except Employee.DoesNotExist:
             context.update({
                 'employee': None,
+                'payslips_count': 0,
+                'total_earnings': 0,
+                'total_payslips': 0,
                 'is_hr_or_admin': False,
             })
     
