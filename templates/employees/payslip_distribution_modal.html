@@ -1,0 +1,372 @@
+<!-- Payslip Distribution Modal -->
+<div id="payslipDistributionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-slate-700">
+            <div>
+                <h3 class="text-2xl font-bold text-white">Payslip Distribution</h3>
+                <p class="text-slate-400 mt-1" id="modalPeriod">Pay Period</p>
+            </div>
+            <button onclick="closePayslipDistributionModal()" class="text-slate-400 hover:text-white transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6 space-y-6">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-800 rounded-lg p-4">
+                    <p class="text-slate-400 text-sm mb-1">Base Salary</p>
+                    <p class="text-white font-bold text-lg" id="modalBaseSalary">₹0</p>
+                </div>
+                <div class="bg-slate-800 rounded-lg p-4">
+                    <p class="text-slate-400 text-sm mb-1">Gross Salary</p>
+                    <p class="text-white font-bold text-lg" id="modalGrossSalary">₹0</p>
+                </div>
+                <div class="bg-slate-800 rounded-lg p-4">
+                    <p class="text-slate-400 text-sm mb-1">Deductions</p>
+                    <p class="text-red-400 font-bold text-lg" id="modalDeductions">₹0</p>
+                </div>
+                <div class="bg-slate-800 rounded-lg p-4">
+                    <p class="text-slate-400 text-sm mb-1">Net Salary</p>
+                    <p class="text-green-400 font-bold text-lg" id="modalNetSalary">₹0</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Salary Breakdown Pie Chart -->
+                <div class="bg-slate-800 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-white mb-4">Salary Breakdown</h4>
+                    <canvas id="salaryBreakdownChart"></canvas>
+                </div>
+
+                <!-- Allowances Distribution -->
+                <div class="bg-slate-800 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-white mb-4">Allowances Distribution</h4>
+                    <canvas id="allowancesChart"></canvas>
+                </div>
+
+                <!-- Deductions Distribution -->
+                <div class="bg-slate-800 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-white mb-4">Deductions Distribution</h4>
+                    <canvas id="deductionsChart"></canvas>
+                </div>
+
+                <!-- Salary Composition Bar Chart -->
+                <div class="bg-slate-800 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-white mb-4">Salary Composition</h4>
+                    <canvas id="salaryCompositionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    let salaryBreakdownChart = null;
+    let allowancesChart = null;
+    let deductionsChart = null;
+    let salaryCompositionChart = null;
+
+    // Color palette
+    const colorPalette = [
+        '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+        '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#84cc16'
+    ];
+
+    function generateColors(count) {
+        const colors = [];
+        for (let i = 0; i < count; i++) {
+            colors.push(colorPalette[i % colorPalette.length]);
+        }
+        return colors;
+    }
+
+    // Function to open modal from detail page
+    function openPayslipDistributionModalFromDetail() {
+        try {
+            const dataScript = document.getElementById('payslipDetailData');
+            if (!dataScript) {
+                console.error('Payslip data not found');
+                return;
+            }
+            const payslip = JSON.parse(dataScript.textContent);
+            openPayslipDistributionModalWithData(payslip);
+        } catch (e) {
+            console.error('Error loading payslip data:', e);
+        }
+    }
+
+    // Function to open modal with payslip data object
+    function openPayslipDistributionModalWithData(payslip) {
+        const baseSalary = payslip.baseSalary;
+        const grossSalary = payslip.grossSalary;
+        const totalDeductions = payslip.totalDeductions;
+        const netSalary = payslip.netSalary;
+        const period = payslip.period;
+        const allowances = payslip.allowances || [];
+        const deductions = payslip.deductions || [];
+
+        // Update modal content
+        document.getElementById('modalPeriod').textContent = `Pay Period: ${period}`;
+        document.getElementById('modalBaseSalary').textContent = '₹' + baseSalary.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('modalGrossSalary').textContent = '₹' + grossSalary.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('modalDeductions').textContent = '₹' + totalDeductions.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        document.getElementById('modalNetSalary').textContent = '₹' + netSalary.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+        // Show modal
+        const modal = document.getElementById('payslipDistributionModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Destroy existing charts
+        if (salaryBreakdownChart) salaryBreakdownChart.destroy();
+        if (allowancesChart) allowancesChart.destroy();
+        if (deductionsChart) deductionsChart.destroy();
+        if (salaryCompositionChart) salaryCompositionChart.destroy();
+
+        // Create charts
+        setTimeout(() => {
+            createCharts(baseSalary, grossSalary, totalDeductions, netSalary, allowances, deductions);
+        }, 100);
+    }
+
+    function closePayslipDistributionModal() {
+        const modal = document.getElementById('payslipDistributionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        // Destroy charts
+        if (salaryBreakdownChart) {
+            salaryBreakdownChart.destroy();
+            salaryBreakdownChart = null;
+        }
+        if (allowancesChart) {
+            allowancesChart.destroy();
+            allowancesChart = null;
+        }
+        if (deductionsChart) {
+            deductionsChart.destroy();
+            deductionsChart = null;
+        }
+        if (salaryCompositionChart) {
+            salaryCompositionChart.destroy();
+            salaryCompositionChart = null;
+        }
+    }
+
+    // Close modal when clicking outside
+    const modal = document.getElementById('payslipDistributionModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePayslipDistributionModal();
+            }
+        });
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePayslipDistributionModal();
+        }
+    });
+
+    function createCharts(baseSalary, grossSalary, totalDeductions, netSalary, allowances, deductions) {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#334155';
+
+        // 1. Salary Breakdown Pie Chart
+        const salaryBreakdownCtx = document.getElementById('salaryBreakdownChart').getContext('2d');
+        const allowancesTotal = allowances.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+        
+        salaryBreakdownChart = new Chart(salaryBreakdownCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Base Salary', 'Allowances', 'Deductions'],
+                datasets: [{
+                    data: [baseSalary, allowancesTotal, totalDeductions],
+                    backgroundColor: ['#6366f1', '#10b981', '#ef4444'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ₹' + context.parsed.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Allowances Distribution
+        const allowancesContainer = document.getElementById('allowancesChart').parentElement;
+        if (allowances.length > 0) {
+            // Restore canvas if it was replaced
+            if (!allowancesContainer.querySelector('canvas')) {
+                allowancesContainer.innerHTML = '<h4 class="text-lg font-semibold text-white mb-4">Allowances Distribution</h4><canvas id="allowancesChart"></canvas>';
+            }
+            const allowancesCtx = document.getElementById('allowancesChart').getContext('2d');
+            const allowanceLabels = allowances.map(a => a.name);
+            const allowanceAmounts = allowances.map(a => parseFloat(a.amount));
+            
+            allowancesChart = new Chart(allowancesCtx, {
+                type: 'bar',
+                data: {
+                    labels: allowanceLabels,
+                    datasets: [{
+                        label: 'Amount',
+                        data: allowanceAmounts,
+                        backgroundColor: generateColors(allowanceLabels.length).map(c => c + '80'),
+                        borderColor: generateColors(allowanceLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '₹' + context.parsed.x.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            allowancesContainer.innerHTML = '<h4 class="text-lg font-semibold text-white mb-4">Allowances Distribution</h4><div class="text-center text-slate-400 py-8">No allowances</div>';
+        }
+
+        // 3. Deductions Distribution
+        const deductionsContainer = document.getElementById('deductionsChart').parentElement;
+        if (deductions.length > 0) {
+            // Restore canvas if it was replaced
+            if (!deductionsContainer.querySelector('canvas')) {
+                deductionsContainer.innerHTML = '<h4 class="text-lg font-semibold text-white mb-4">Deductions Distribution</h4><canvas id="deductionsChart"></canvas>';
+            }
+            const deductionsCtx = document.getElementById('deductionsChart').getContext('2d');
+            const deductionLabels = deductions.map(d => d.name);
+            const deductionAmounts = deductions.map(d => parseFloat(d.amount));
+            
+            deductionsChart = new Chart(deductionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: deductionLabels,
+                    datasets: [{
+                        label: 'Amount',
+                        data: deductionAmounts,
+                        backgroundColor: generateColors(deductionLabels.length).map(c => c + '80'),
+                        borderColor: generateColors(deductionLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '₹' + context.parsed.x.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            deductionsContainer.innerHTML = '<h4 class="text-lg font-semibold text-white mb-4">Deductions Distribution</h4><div class="text-center text-slate-400 py-8">No deductions</div>';
+        }
+
+        // 4. Salary Composition Bar Chart
+        const salaryCompositionCtx = document.getElementById('salaryCompositionChart').getContext('2d');
+        salaryCompositionChart = new Chart(salaryCompositionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Base Salary', 'Gross Salary', 'Net Salary'],
+                datasets: [{
+                    label: 'Amount',
+                    data: [baseSalary, grossSalary, netSalary],
+                    backgroundColor: ['#6366f1', '#10b981', '#22c55e'].map(c => c + '80'),
+                    borderColor: ['#6366f1', '#10b981', '#22c55e'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+

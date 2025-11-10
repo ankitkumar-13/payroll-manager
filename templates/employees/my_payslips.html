@@ -22,7 +22,13 @@
                 </thead>
                 <tbody>
                     {% for payslip in payslips %}
-                    <tr class="border-b border-slate-800 hover:bg-slate-800 transition">
+                    <tr class="border-b border-slate-800 hover:bg-slate-800 transition" 
+                        data-payslip-id="{{ payslip.id }}"
+                        data-base-salary="{{ payslip.base_salary }}"
+                        data-gross-salary="{{ payslip.gross_salary }}"
+                        data-total-deductions="{{ payslip.total_deductions }}"
+                        data-net-salary="{{ payslip.net_salary }}"
+                        data-period="{{ payslip.payroll.month }}/{{ payslip.payroll.year }}">
                         <td class="py-4 px-6 text-white font-medium">{{ payslip.payroll.month }}/{{ payslip.payroll.year }}</td>
                         <td class="py-4 px-6 text-slate-300">₹{{ payslip.base_salary|floatformat:2 }}</td>
                         <td class="py-4 px-6 text-slate-300">₹{{ payslip.gross_salary|floatformat:2 }}</td>
@@ -38,9 +44,19 @@
                             </span>
                         </td>
                         <td class="py-4 px-6">
-                            <a href="{% url 'view_payslip_detail' payslip.id %}" class="text-indigo-400 hover:text-indigo-300 font-medium">
-                                View Details
-                            </a>
+                            <div class="flex items-center gap-3">
+                                <a href="{% url 'view_payslip_detail' payslip.id %}" class="text-indigo-400 hover:text-indigo-300 font-medium">
+                                    View Details
+                                </a>
+                                <button 
+                                    onclick="openPayslipDistributionModal({{ payslip.id }})" 
+                                    class="text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    Distribution
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -57,4 +73,72 @@
         <p class="text-slate-400">You don't have any payslips yet. Payslips will appear here once payroll is processed.</p>
     </div>
 {% endif %}
+
+{% if payslips %}
+<!-- Payslip Data for JavaScript -->
+<script type="application/json" id="payslipsData">
+{
+    "payslips": [
+        {% for payslip in payslips %}
+        {
+            "id": {{ payslip.id }},
+            "baseSalary": {{ payslip.base_salary }},
+            "grossSalary": {{ payslip.gross_salary }},
+            "totalDeductions": {{ payslip.total_deductions }},
+            "netSalary": {{ payslip.net_salary }},
+            "period": "{{ payslip.payroll.month }}/{{ payslip.payroll.year }}",
+            "allowances": [
+                {% for allowance in payslip.allowances.all %}
+                {
+                    "name": "{{ allowance.allowance_type.name|escapejs }}",
+                    "amount": {{ allowance.amount }}
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            "deductions": [
+                {% for deduction in payslip.deductions.all %}
+                {
+                    "name": "{{ deduction.deduction_type.name|escapejs }}",
+                    "amount": {{ deduction.amount }}
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+{% else %}
+<script type="application/json" id="payslipsData">
+{"payslips": []}
+</script>
+{% endif %}
+
+<!-- Include the shared modal component -->
+{% include 'employees/payslip_distribution_modal.html' %}
+
+<script>
+    // Load payslip data for list page
+    let payslipsData = {};
+    try {
+        const dataScript = document.getElementById('payslipsData');
+        if (dataScript) {
+            payslipsData = JSON.parse(dataScript.textContent);
+        }
+    } catch (e) {
+        console.error('Error loading payslip data:', e);
+    }
+
+    // Function to open modal from list page
+    function openPayslipDistributionModal(payslipId) {
+        // Find payslip data
+        const payslip = payslipsData.payslips?.find(p => p.id === payslipId);
+        if (!payslip) {
+            console.error('Payslip not found:', payslipId);
+            return;
+        }
+        // Use the shared function from the modal component
+        openPayslipDistributionModalWithData(payslip);
+    }
+</script>
 {% endblock %}

@@ -128,12 +128,53 @@
         <a href="{% url 'view_my_payslips' %}" class="btn btn-ghost text-slate-300 hover:text-white">
             ← Back to My Payslips
         </a>
-        <a href="{% url 'generate_payslip' payslip.id %}" target="_blank" class="btn bg-indigo-600 text-white hover:bg-indigo-700">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Generate Payslip
-        </a>
+        <div class="flex items-center gap-3">
+            <button 
+                onclick="openPayslipDistributionModalFromDetail()" 
+                class="btn bg-purple-600 text-white hover:bg-purple-700 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                View Distribution
+            </button>
+            <a href="{% url 'generate_payslip' payslip.id %}" target="_blank" class="btn bg-indigo-600 text-white hover:bg-indigo-700">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Generate Payslip
+            </a>
+        </div>
     </div>
 </div>
+
+<!-- Payslip Data for JavaScript -->
+<script type="application/json" id="payslipDetailData">
+{
+    "id": {{ payslip.id }},
+    "baseSalary": {{ payslip.base_salary }},
+    "grossSalary": {{ payslip.gross_salary }},
+    "totalDeductions": {{ payslip.total_deductions }},
+    "netSalary": {{ payslip.net_salary }},
+    "period": "{{ payslip.payroll.month }}/{{ payslip.payroll.year }}",
+    "allowances": [
+        {% for allowance in allowances %}
+        {
+            "name": "{{ allowance.allowance_type.name|escapejs }}",
+            "amount": {{ allowance.amount }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "deductions": [
+        {% for deduction in deductions %}
+        {
+            "name": "{{ deduction.deduction_type.name|escapejs }}",
+            "amount": {{ deduction.amount }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+
+<!-- Include the modal and chart scripts -->
+{% include 'employees/payslip_distribution_modal.html' %}
 {% endblock %}
